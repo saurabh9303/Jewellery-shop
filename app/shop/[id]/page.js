@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Star, ShoppingBag, Heart } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Star, ShoppingBag, Heart, Check, X, AlertCircle, Package, Shield, Truck } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -14,13 +14,20 @@ export default function ProductDetailPage() {
   const [wishlist, setWishlist] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  // Notification System
+  const showNotification = (type, title, message) => {
+    setNotification({ type, title, message });
+    setTimeout(() => setNotification(null), 4000);
+  };
 
   // 🟡 Dummy data (replace with DB/API later)
   const products = [
     {
       id: 1,
       name: "Elegant Gold Necklace",
-      price: 10,
+      price: 1,
       originalPrice: 32999,
       rating: 4.8,
       reviews: 127,
@@ -46,7 +53,7 @@ export default function ProductDetailPage() {
     {
       id: 2,
       name: "Diamond Ring",
-      price: 45499,
+      price: 4,
       originalPrice: 50999,
       rating: 4.9,
       reviews: 201,
@@ -155,26 +162,38 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-700">
-        <div className="text-center">
-          <h1 className="text-3xl font-semibold mb-4">Product Not Found</h1>
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-white to-yellow-50">
+        <div className="text-center bg-white rounded-2xl shadow-2xl p-12 border border-amber-200">
+          <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Package className="w-10 h-10 text-amber-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-4">Product Not Found</h1>
+          <p className="text-slate-600 mb-6">The item you're looking for doesn't exist or has been removed.</p>
           <Link
             href="/shop"
-            className="text-amber-600 underline hover:text-amber-700"
+            className="inline-block bg-gradient-to-r from-amber-600 to-yellow-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-amber-700 hover:to-yellow-700 transition-all shadow-lg"
           >
-            Back to Shop
+            Browse Our Collection
           </Link>
         </div>
       </main>
     );
   }
 
-  const toggleWishlist = () => setWishlist(!wishlist);
+  const toggleWishlist = () => {
+    setWishlist(!wishlist);
+    if (!wishlist) {
+      showNotification("success", "Added to Wishlist", "Product has been saved to your wishlist");
+    } else {
+      showNotification("info", "Removed from Wishlist", "Product removed from your wishlist");
+    }
+  };
 
   // 🟢 Add to Cart Function
   const handleAddToCart = async () => {
     if (!session) {
-      router.push("/account"); // redirect to login if not logged in
+      showNotification("warning", "Login Required", "Please sign in to add items to your cart");
+      setTimeout(() => router.push("/account"), 1500);
       return;
     }
 
@@ -194,207 +213,249 @@ export default function ProductDetailPage() {
       });
 
       if (res.ok) {
-        alert("✅ Added to cart successfully!");
+        showNotification("success", "Added to Cart", `${product.name} has been added to your cart successfully`);
       } else {
-        alert("⚠️ Failed to add item to cart!");
+        showNotification("error", "Failed", "Unable to add item to cart. Please try again.");
       }
     } catch (error) {
       console.error("Add to cart error:", error);
-      alert("Something went wrong!");
+      showNotification("error", "Error", "Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBuyNow = async () => {
+  const handleBuyNow = () => {
     if (!session) {
-      router.push("/account");
+      showNotification("warning", "Login Required", "Please sign in to proceed with purchase");
+      setTimeout(() => router.push("/account"), 1500);
       return;
     }
+    router.push(`/buy-now/${product.id}`);
+  };
 
-    try {
-      setLoading(true);
-
-      // 1️⃣ Create order on backend
-      const res = await fetch("/api/razorpay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: product.price }),
-      });
-
-      const data = await res.json();
-
-      if (!data.order) {
-        alert("Error creating Razorpay order");
-        return;
-      }
-
-      // 2️⃣ Load Razorpay script
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // frontend public key
-          amount: data.order.amount,
-          currency: "INR",
-          name: "Jewellery Shop",
-          description: `Purchase of ${product.name}`,
-          order_id: data.order.id,
-          handler: function (response) {
-            alert("Payment Successful! 🎉");
-            console.log("Payment ID:", response.razorpay_payment_id);
-            console.log("Order ID:", response.razorpay_order_id);
-          },
-          prefill: {
-            name: session.user.name,
-            email: session.user.email,
-          },
-          theme: {
-            color: "#FBBF24",
-          },
-        };
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
-      };
-    } catch (error) {
-      console.error("Razorpay payment error:", error);
-      alert("Something went wrong during payment.");
-    } finally {
-      setLoading(false);
+  const NotificationIcon = ({ type }) => {
+    switch (type) {
+      case "success":
+        return <Check className="w-6 h-6" />;
+      case "error":
+        return <X className="w-6 h-6" />;
+      case "warning":
+        return <AlertCircle className="w-6 h-6" />;
+      default:
+        return <AlertCircle className="w-6 h-6" />;
     }
   };
 
-
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-amber-50 py-16 px-6">
-      <div className="container mx-auto max-w-6xl">
-        {/* Breadcrumb */}
-        <nav className="text-sm mb-6 text-gray-500">
-          <Link href="/" className="hover:text-amber-600">
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Styled Notification System */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            className="fixed top-6 right-6 z-50 max-w-md"
+          >
+            <div
+              className={`rounded-2xl shadow-2xl border-2 p-5 backdrop-blur-xl ${
+                notification.type === "success"
+                  ? "bg-gradient-to-br from-emerald-500 to-emerald-600 border-emerald-400"
+                  : notification.type === "error"
+                  ? "bg-gradient-to-br from-red-500 to-red-600 border-red-400"
+                  : notification.type === "warning"
+                  ? "bg-gradient-to-br from-amber-500 to-yellow-500 border-amber-400"
+                  : "bg-gradient-to-br from-blue-500 to-blue-600 border-blue-400"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 bg-white/20 rounded-full p-2">
+                  <NotificationIcon type={notification.type} />
+                </div>
+                <div className="flex-1 text-white">
+                  <h4 className="font-bold text-lg mb-1">{notification.title}</h4>
+                  <p className="text-sm opacity-95">{notification.message}</p>
+                </div>
+                <button
+                  onClick={() => setNotification(null)}
+                  className="flex-shrink-0 text-white hover:bg-white/20 rounded-lg p-1 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="container mx-auto max-w-7xl">
+        {/* Professional Breadcrumb */}
+        <nav className="mb-8 flex items-center gap-2 text-sm">
+          <Link href="/" className="text-slate-600 hover:text-amber-600 font-medium transition">
             Home
-          </Link>{" "}
-          /{" "}
-          <Link href="/shop" className="hover:text-amber-600">
+          </Link>
+          <span className="text-slate-400">/</span>
+          <Link href="/shop" className="text-slate-600 hover:text-amber-600 font-medium transition">
             Shop
-          </Link>{" "}
-          / <span className="text-gray-800 font-medium">{product.name}</span>
+          </Link>
+          <span className="text-slate-400">/</span>
+          <span className="text-slate-900 font-semibold">{product.name}</span>
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Image Gallery */}
+          {/* Premium Image Gallery */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <div className="relative w-full overflow-hidden rounded-2xl shadow-lg bg-gradient-to-br from-gray-100 to-amber-50">
-              <img
-                src={product.images[selectedImage]}
-                alt={product.name}
-                className="w-full h-[500px] object-cover transition-all duration-500"
-              />
-
-              {product.isBestseller && (
-                <span className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-3 py-1 rounded-full font-semibold shadow-md">
-                  Bestseller
-                </span>
-              )}
-
-              <button
-                onClick={toggleWishlist}
-                className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-amber-50 transition"
-              >
-                <Heart
-                  className={`w-5 h-5 ${wishlist ? "fill-red-500 text-red-500" : "text-gray-500"
-                    }`}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-200 to-yellow-200 rounded-3xl blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="relative w-full overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br from-slate-100 to-amber-50 border-2 border-amber-200">
+                <img
+                  src={product.images[selectedImage]}
+                  alt={product.name}
+                  className="w-full h-[550px] object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-              </button>
+
+                {product.isBestseller && (
+                  <span className="absolute top-6 left-6 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white text-sm px-5 py-2 rounded-full font-bold shadow-xl uppercase tracking-wide">
+                    ✨ Bestseller
+                  </span>
+                )}
+
+                <button
+                  onClick={toggleWishlist}
+                  className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-xl hover:bg-white hover:scale-110 transition-all duration-300"
+                >
+                  <Heart
+                    className={`w-6 h-6 transition-all ${
+                      wishlist ? "fill-red-500 text-red-500 scale-110" : "text-slate-600"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
-            {/* Thumbnails */}
+            {/* Premium Thumbnails */}
             <div className="flex gap-4 justify-center flex-wrap">
               {product.images.map((img, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`w-24 h-24 rounded-xl overflow-hidden border-2 ${selectedImage === index
-                    ? "border-amber-500 shadow-md"
-                    : "border-transparent"
-                    } transition`}
+                  className={`relative w-24 h-24 rounded-2xl overflow-hidden border-3 transition-all duration-300 ${
+                    selectedImage === index
+                      ? "border-amber-500 shadow-xl scale-110"
+                      : "border-amber-200 hover:border-amber-400 hover:scale-105"
+                  }`}
                 >
                   <img
                     src={img}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                    alt={`View ${index + 1}`}
+                    className="w-full h-full object-cover"
                   />
                 </button>
               ))}
             </div>
           </motion.div>
 
-          {/* Product Info */}
+          {/* Premium Product Info */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
           >
-            <h1 className="text-4xl font-bold text-gray-900">{product.name}</h1>
-
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-              <span className="font-semibold">{product.rating}</span>
-              <span className="text-gray-500 text-sm">
-                ({product.reviews} reviews)
+            {/* Title & Category */}
+            <div>
+              <span className="inline-block bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-xs font-bold px-4 py-1.5 rounded-full mb-4 border border-amber-300">
+                {product.category}
               </span>
+              <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">{product.name}</h1>
+              
+              {/* Rating */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-yellow-500 px-3 py-1.5 rounded-lg">
+                  <Star className="w-4 h-4 fill-white text-white" />
+                  <span className="font-bold text-white">{product.rating}</span>
+                </div>
+                <span className="text-slate-600 font-medium">
+                  {product.reviews} verified reviews
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-bold text-gray-900">
-                ₹{product.price.toLocaleString("en-IN")}
-              </span>
-              <span className="text-gray-400 line-through">
-                ₹{product.originalPrice.toLocaleString("en-IN")}
-              </span>
+            {/* Premium Pricing */}
+            <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border-2 border-amber-200">
+              <div className="flex items-baseline gap-4">
+                <span className="text-5xl font-bold bg-gradient-to-r from-amber-700 to-yellow-700 bg-clip-text text-transparent">
+                  ₹{product.price.toLocaleString("en-IN")}
+                </span>
+                <span className="text-2xl text-slate-400 line-through">
+                  ₹{product.originalPrice.toLocaleString("en-IN")}
+                </span>
+                <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                  {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                </span>
+              </div>
             </div>
 
-            <p className="text-gray-700">{product.description}</p>
+            {/* Description */}
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">About This Product</h3>
+              <p className="text-slate-700 leading-relaxed">{product.description}</p>
+            </div>
 
-            <div className="border-t border-b py-4">
-              <h3 className="font-semibold mb-3 text-gray-800">
-                Specifications
-              </h3>
-              <div className="grid sm:grid-cols-2 gap-y-2 text-gray-700">
+            {/* Premium Specifications */}
+            <div className="bg-white rounded-2xl border-2 border-amber-200 p-6">
+              <h3 className="text-xl font-bold text-slate-900 mb-4">Product Specifications</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
                 {Object.entries(product.details).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="capitalize font-medium">{key}</span>
-                    <span>{value}</span>
+                  <div key={key} className="flex flex-col">
+                    <span className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
+                      {key}
+                    </span>
+                    <span className="text-slate-900 font-semibold">{value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Trust Badges */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
+                <Shield className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-xs font-bold text-blue-900">Certified Quality</p>
+              </div>
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 text-center border border-emerald-200">
+                <Truck className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+                <p className="text-xs font-bold text-emerald-900">Free Shipping</p>
+              </div>
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 text-center border border-amber-200">
+                <Package className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                <p className="text-xs font-bold text-amber-900">Premium Packaging</p>
+              </div>
+            </div>
+
+            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
                 onClick={handleAddToCart}
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-6 py-4 rounded-xl font-semibold shadow-md hover:shadow-xl transition flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 bg-gradient-to-r from-amber-600 to-yellow-600 text-white px-8 py-5 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl hover:from-amber-700 hover:to-yellow-700 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
               >
-                <ShoppingBag className="w-5 h-5" />{" "}
+                <ShoppingBag className="w-6 h-6" />
                 {loading ? "Adding..." : "Add to Cart"}
               </button>
               <button
                 onClick={handleBuyNow}
                 disabled={loading}
-                className="flex-1 border-2 border-amber-500 text-amber-600 hover:bg-amber-50 px-6 py-4 rounded-xl font-semibold shadow-sm transition disabled:opacity-50"
+                className="flex-1 bg-white border-3 border-amber-600 text-amber-700 hover:bg-amber-50 px-8 py-5 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Processing..." : "Buy Now"}
               </button>
-
             </div>
           </motion.div>
         </div>
