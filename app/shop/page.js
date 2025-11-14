@@ -77,7 +77,7 @@ const router = useRouter();
       category: "Bracelets",
       rating: 4.6,
       reviews: 64,
-      inStock: false,
+      inStock: true,
       description: "Traditional gold bracelet with filigree work",
       metal: "22K Gold",
       weight: "18.3g",

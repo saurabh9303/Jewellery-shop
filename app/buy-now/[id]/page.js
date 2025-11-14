@@ -27,6 +27,9 @@ export default function BuyNowPage() {
     { id: 1, name: "Elegant Gold Necklace", price: 1, image: "/necklace.jpg" },
     { id: 2, name: "Diamond Ring", price: 4, image: "/ring.jpg" },
     { id: 3, name: "Pearl Earrings", price: 1, image: "/earrings.jpg" },
+    { id: 4, name: "Royal Bracelet", price: 5, image: "/Royal-Bracelet.jpg" },
+    { id: 5, name: "Luxury Pendant", price: 2, image: "/Luxury-Pendant.jpg" },
+    { id: 6, name: "Gold Bangles Set", price:3, image: "/Gold-Bangles-Set.jpg" },
   ];
 
   const product = products.find((p) => p.id == id);
