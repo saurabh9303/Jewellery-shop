@@ -12,7 +12,7 @@ export default function Dashboard() {
 
     // Redirect if user not logged in
     useEffect(() => {
-        if (status === "unauthenticated") router.push("/signin");
+        if (status === "unauthenticated") router.push("/account");
     }, [status, router]);
 
     // Fetch Orders
@@ -41,7 +41,7 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50">
-            
+
             {/* ============================== HEADER =============================== */}
             <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-amber-200/50 shadow-lg">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5">
@@ -77,7 +77,7 @@ export default function Dashboard() {
                 <section className="relative bg-gradient-to-r from-white via-amber-50/30 to-white rounded-2xl border border-amber-200/60 p-8 mb-10 shadow-xl overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-200/20 to-transparent rounded-full blur-3xl"></div>
                     <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-yellow-200/20 to-transparent rounded-full blur-3xl"></div>
-                    
+
                     <div className="relative flex items-center gap-6">
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-full blur-lg opacity-30"></div>
@@ -91,13 +91,26 @@ export default function Dashboard() {
                             <h2 className="text-3xl font-bold text-slate-900 mb-1">
                                 Welcome back, {session?.user?.name}
                             </h2>
+
                             <p className="text-amber-700 font-medium mb-2">
-                                Valued Client
+                                {session?.user?.role === "admin" ? "Admin User" : "Valued Client"}
                             </p>
-                            <p className="text-slate-600 text-sm">
+
+                            <p className="text-slate-600 text-sm mb-4">
                                 {session?.user?.email}
                             </p>
+
+                            {/* ================= ADMIN PANEL BUTTON ================= */}
+                            {session?.user?.role === "admin" && (
+                                <button
+                                    onClick={() => router.push("/admin")}
+                                    className="px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
+                                >
+                                    Go to Admin Panel
+                                </button>
+                            )}
                         </div>
+
                     </div>
                 </section>
 
@@ -107,7 +120,7 @@ export default function Dashboard() {
                     <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-8 shadow-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
-                        
+
                         <div className="relative">
                             <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +135,7 @@ export default function Dashboard() {
                     <div className="relative bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-8 shadow-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
-                        
+
                         <div className="relative">
                             <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +152,7 @@ export default function Dashboard() {
                     <div className="relative bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-8 shadow-2xl overflow-hidden group hover:shadow-3xl transition-all duration-300">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
-                        
+
                         <div className="relative">
                             <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,9 +192,9 @@ export default function Dashboard() {
                                 className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-100 hover:border-amber-300"
                             >
                                 <div className="aspect-square overflow-hidden bg-gradient-to-br from-amber-50 to-yellow-50">
-                                    <img 
-                                        src={item.img} 
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                                    <img
+                                        src={item.img}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                         alt={item.name}
                                     />
                                 </div>
@@ -256,11 +269,10 @@ export default function Dashboard() {
                                                     </p>
                                                 </div>
                                                 <span
-                                                    className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide shadow-lg ${
-                                                        order.paymentStatus === "PAID"
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide shadow-lg ${order.paymentStatus === "PAID"
                                                             ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white"
                                                             : "bg-gradient-to-r from-amber-400 to-yellow-500 text-white"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {order.paymentStatus}
                                                 </span>
@@ -277,7 +289,7 @@ export default function Dashboard() {
                                                     <div>
                                                         <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">Order Date</p>
                                                         <p className="font-bold text-slate-900">
-                                                            {new Date(order.createdAt).toLocaleDateString('en-IN', { 
+                                                            {new Date(order.createdAt).toLocaleDateString('en-IN', {
                                                                 day: 'numeric',
                                                                 month: 'short',
                                                                 year: 'numeric'
@@ -301,15 +313,6 @@ export default function Dashboard() {
                 </section>
 
             </main>
-
-            {/* ============================== FOOTER =============================== */}
-            <footer className="mt-16 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-t border-amber-200 py-8">
-                <div className="max-w-7xl mx-auto px-6 text-center">
-                    <p className="text-sm text-slate-600">
-                        © 2024 Abhi Jewellers. Crafting timeless elegance since decades.
-                    </p>
-                </div>
-            </footer>
 
         </div>
     );

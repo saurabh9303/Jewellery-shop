@@ -74,17 +74,45 @@ export async function POST(req) {
   }
 }
 // GET ORDERS BY USER EMAIL
+// ======================= GET ORDERS (Admin + Users) =======================
 export async function GET(req) {
-  await connectToDatabase();
+  try {
+    await connectToDatabase();
 
-  const { searchParams } = new URL(req.url);
-  const email = searchParams.get("email");
+    const session = await getServerSession({ req, ...authOptions });
 
-  if (!email) {
-    return NextResponse.json({ error: "Email required" }, { status: 400 });
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const email = searchParams.get("email");
+
+    // ========== ADMIN REQUEST (NO EMAIL) ==========
+    if (session.user.role === "admin" && !email) {
+      const allOrders = await Order.find().sort({ createdAt: -1 });
+      return NextResponse.json({ orders: allOrders }, { status: 200 });
+    }
+
+    // ========== USER REQUEST (EMAIL REQUIRED) ==========
+    if (!email) {
+      return NextResponse.json({ error: "Email required" }, { status: 400 });
+    }
+
+    // Users can only fetch their own orders
+    if (session.user.email !== email && session.user.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const userOrders = await Order.find({ userEmail: email }).sort({ createdAt: -1 });
+
+    return NextResponse.json({ orders: userOrders }, { status: 200 });
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    );
   }
-
-  const orders = await Order.find({ "userEmail": email }).sort({ createdAt: -1 });
-
-  return NextResponse.json({ orders });
 }
+
