@@ -4,13 +4,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
 
+// ⛔ Important: prevent build-time execution
+export const dynamic = "force-dynamic";
 
 // ======================== GET USERS ========================
-export async function GET(req) {
+export async function GET() {
   try {
     await connectToDatabase();
 
-    const session = await getServerSession({ req, ...authOptions });
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "Unauthorized!" }, { status: 401 });
@@ -20,20 +22,20 @@ export async function GET(req) {
 
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
+    console.error("GET /admin/users error:", error);
     return NextResponse.json(
-      { message: "Server Error", error: error.message },
+      { message: "Server Error" },
       { status: 500 }
     );
   }
 }
-
 
 // ======================== DELETE USER ========================
 export async function DELETE(req) {
   try {
     await connectToDatabase();
 
-    const session = await getServerSession({ req, ...authOptions });
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "Unauthorized!" }, { status: 401 });
@@ -62,8 +64,9 @@ export async function DELETE(req) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("DELETE /admin/users error:", error);
     return NextResponse.json(
-      { message: "Server Error", error: error.message },
+      { message: "Server Error" },
       { status: 500 }
     );
   }
