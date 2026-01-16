@@ -1,16 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export default function OrderSuccess() {
-  const searchParams = useSearchParams(); 
+export default function OrderSuccess({ paymentType }) {
   const router = useRouter();
-
-  // fallback in case 'type' param missing
-  const type = searchParams?.get("type") || "cod";
-
   const [step, setStep] = useState("success"); // success | processing
+
+  // If paymentType not provided, fallback to COD
+  const type = paymentType || "cod";
 
   useEffect(() => {
     const t1 = setTimeout(() => setStep("processing"), 1200);
