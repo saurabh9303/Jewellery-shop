@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function OrderSuccess() {
-  const params = useSearchParams();
-  const type = params.get("type");
+  const searchParams = useSearchParams(); 
   const router = useRouter();
+
+  // fallback in case 'type' param missing
+  const type = searchParams?.get("type") || "cod";
 
   const [step, setStep] = useState("success"); // success | processing
 
