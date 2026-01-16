@@ -79,7 +79,7 @@ export default function ProductDetailPage() {
     {
       id: 3,
       name: "Pearl Earrings",
-      price: 15799,
+      price: 2,
       originalPrice: 18999,
       rating: 4.6,
       reviews: 86,
@@ -99,7 +99,7 @@ export default function ProductDetailPage() {
     {
       id: 4,
       name: "Royal Bracelet",
-      price: 29999,
+      price: 2,
       originalPrice: 35999,
       rating: 4.7,
       reviews: 92,
@@ -119,7 +119,7 @@ export default function ProductDetailPage() {
     {
       id: 5,
       name: "Luxury Pendant",
-      price: 22499,
+      price: 5,
       originalPrice: 25999,
       rating: 4.5,
       reviews: 65,
@@ -139,7 +139,7 @@ export default function ProductDetailPage() {
     {
       id: 6,
       name: "Gold Bangles Set",
-      price: 35999,
+      price: 3,
       originalPrice: 42999,
       rating: 4.9,
       reviews: 190,

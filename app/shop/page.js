@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Filter, Heart, ShoppingBag, Star } from "lucide-react";
 import Link from "next/link";
@@ -13,9 +13,10 @@ export default function ProfessionalShopPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("featured");
   const [wishlist, setWishlist] = useState([]);
+  const [toast, setToast] = useState(null);
 
   const { data: session } = useSession();
-const router = useRouter();
+  const router = useRouter();
 
   const categories = ["All", "Necklaces", "Rings", "Earrings", "Bracelets", "Pendants", "Bangles"];
 
@@ -23,9 +24,9 @@ const router = useRouter();
     {
       id: 1,
       name: "Elegant Gold Necklace",
-      price: 25999,
+      price: 1,
       originalPrice: 32999,
-      image: "/images/necklace.jpg",
+      image: "/necklace.jpg",
       category: "Necklaces",
       rating: 4.8,
       reviews: 127,
@@ -39,9 +40,9 @@ const router = useRouter();
     {
       id: 2,
       name: "Diamond Ring",
-      price: 45499,
+      price: 4,
       originalPrice: 52999,
-      image: "/images/ring.jpg",
+      image: "/ring.jpg",
       category: "Rings",
       rating: 4.9,
       reviews: 203,
@@ -56,9 +57,9 @@ const router = useRouter();
     {
       id: 3,
       name: "Pearl Earrings",
-      price: 15799,
+      price: 2,
       originalPrice: 19999,
-      image: "/images/earrings.jpg",
+      image: "earrings.jpg",
       category: "Earrings",
       rating: 4.7,
       reviews: 89,
@@ -71,9 +72,9 @@ const router = useRouter();
     {
       id: 4,
       name: "Royal Bracelet",
-      price: 29999,
+      price: 2,
       originalPrice: 35999,
-      image: "/images/bracelet.jpg",
+      image: "/bracelet.jpg",
       category: "Bracelets",
       rating: 4.6,
       reviews: 64,
@@ -86,9 +87,9 @@ const router = useRouter();
     {
       id: 5,
       name: "Luxury Pendant",
-      price: 22499,
+      price: 5,
       originalPrice: 27999,
-      image: "/images/pendant.jpg",
+      image: "/pendant.jpg",
       category: "Pendants",
       rating: 4.8,
       reviews: 142,
@@ -102,9 +103,9 @@ const router = useRouter();
     {
       id: 6,
       name: "Gold Bangles Set",
-      price: 35999,
+      price: 3,
       originalPrice: 42999,
-      image: "/images/bangles.jpg",
+      image: "/bangles.jpg",
       category: "Bangles",
       rating: 4.9,
       reviews: 178,
@@ -133,57 +134,90 @@ const router = useRouter();
     );
   };
   const addToCart = async (product) => {
-  try {
-    // 🧠 If not logged in, redirect to login (Google)
-    if (!session) {
-      alert("Please sign in to add items to your cart.");
-      signIn("google");
-      return;
-    }
-
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-      }),
-    });
-
-    if (!res.ok) {
-      if (res.status === 401) {
-        alert("Please sign in to add to cart.");
-        signIn("google");
+    try {
+      // 🧠 If not logged in, redirect to login (Google)
+      if (!session) {
+        setToast({ type: "error", message: "Please sign in to add items to your cart." });
+        router.push('/account');
         return;
       }
-      throw new Error(`Failed to add to cart (${res.status})`);
+
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+        }),
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          alert("Please sign in to add to cart.");
+          signIn("google");
+          return;
+        }
+        throw new Error(`Failed to add to cart (${res.status})`);
+      }
+
+      const data = await res.json();
+      console.log("✅ Cart updated:", data);
+      setToast({ type: "success", message: `${product.name} added to cart successfully!` });
+    } catch (err) {
+      console.error("❌ Error adding to cart:", err);
+      setToast({ type: "error", message: "Something went wrong. Please try again later." });
+
     }
+  };
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 2000);
 
-    const data = await res.json();
-    console.log("✅ Cart updated:", data);
-    alert(`${product.name} added to cart successfully!`);
-  } catch (err) {
-    console.error("❌ Error adding to cart:", err);
-    alert("Something went wrong. Please try again later.");
-  }
-};
-
-
-
-
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
   return (
+
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-amber-50">
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.3 }}
+            className={`fixed top-6 right-0 z-50 max-w-sm w-full px-5 py-4 rounded-xl shadow-2xl text-white
+        ${toast.type === "success"
+                ? "bg-gradient-to-r from-emerald-500 to-teal-500"
+                : "bg-gradient-to-r from-red-500 to-rose-500"
+              }`}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-sm font-semibold">{toast.message}</p>
+              <button
+                onClick={() => setToast(null)}
+                className="text-white/80 hover:text-white text-lg font-bold"
+              >
+                ×
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="container mx-auto px-6 py-12">
         {/* HEADER */}
-        <header className="text-center mb-12">
+        <header className="text-center mt-10 mb-5">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 bg-clip-text text-transparent">
               Exquisite Jewelry Collection
             </h1>
             <p className="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
@@ -199,8 +233,8 @@ const router = useRouter();
         </header>
 
         {/* FILTER BAR */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-10 border border-gray-100">
-          <div className="grid md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-5 border border-gray-100">
+          <div className="grid md:grid-cols-3 gap-3">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -383,6 +417,7 @@ const router = useRouter();
           </AnimatePresence>
         </section>
       </div>
+
     </main>
   );
 }

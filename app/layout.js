@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Abhi Jewellers",
+  title: "Imperial Jewels",
   description: "Discover premium gold, diamond, and silver jewellery collections.",
 };
 

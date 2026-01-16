@@ -47,6 +47,9 @@ const ConfirmModal = ({ visible, message, onConfirm, onCancel }) => {
 };
 
 export default function AdminDashboardPage() {
+  // Active Tab
+  const [activeTab, setActiveTab] = useState("users");
+
   // ============ USERS =============== //
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -86,7 +89,7 @@ export default function AdminDashboardPage() {
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const res = await fetch("/api/order"); 
+      const res = await fetch("/api/order");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load orders");
       setOrders(data.orders || []);
@@ -101,7 +104,7 @@ export default function AdminDashboardPage() {
   const fetchMessages = async () => {
     try {
       setLoadingMessages(true);
-      const res = await fetch("/api/contact"); 
+      const res = await fetch("/api/contact");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to load messages");
       setMessages(data.messages || []);
@@ -141,173 +144,321 @@ export default function AdminDashboardPage() {
     fetchMessages();
   }, []);
 
+  const tabs = [
+    { id: "users", label: "Users", icon: "👥", count: users.length },
+    { id: "orders", label: "Orders", icon: "📦", count: orders.length },
+    { id: "messages", label: "Messages", icon: "✉️", count: messages.length },
+  ];
+
   return (
-    <div className="p-6 space-y-12">
+    <div className="flex h-screen bg-gray-50">
+      {/* LEFT SIDEBAR */}
+      <div className="w-64 bg-white border-r border-gray-200 flex mt-20 flex-col">
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
+          <p className="text-sm text-gray-500 mt-1">Dashboard Overview</p>
+        </div>
+        
+        <nav className="flex-1 p-4">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full text-left px-4 py-3 rounded-lg mb-2 transition-all duration-200 flex items-center justify-between ${
+                activeTab === tab.id
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <span className="flex items-center gap-3">
+                <span className="text-xl">{tab.icon}</span>
+                <span className="font-medium">{tab.label}</span>
+              </span>
+              <span className={`text-xs px-2 py-1 rounded-full ${
+                activeTab === tab.id
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-200 text-gray-600"
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </nav>
+      </div>
 
-      {/* ALERT */}
-      {alert && (
-        <Alert
-          message={alert.message}
-          type={alert.type}
-          onClose={() => setAlert(null)}
-        />
-      )}
+      {/* RIGHT CONTENT AREA */}
+      <div className="flex-1 mt-15 overflow-x-auto overflow-y-auto max-h-[500px] ">
+        <div className="p-8">
+          {/* ALERT */}
+          {alert && (
+            <Alert
+              message={alert.message}
+              type={alert.type}
+              onClose={() => setAlert(null)}
+            />
+          )}
 
-      {/* CONFIRM MODAL */}
-      <ConfirmModal
-        visible={confirmVisible}
-        message="Are you sure you want to delete this user?"
-        onConfirm={deleteUser}
-        onCancel={() => setConfirmVisible(false)}
-      />
+          {/* CONFIRM MODAL */}
+          <ConfirmModal
+            visible={confirmVisible}
+            message="Are you sure you want to delete this user?"
+            onConfirm={deleteUser}
+            onCancel={() => setConfirmVisible(false)}
+          />
 
-      {/* ================= USERS TABLE ================= */}
-      <section>
-        <h1 className="text-2xl font-bold mb-4">Admin – All Users</h1>
-        {userError && <Alert message={userError} type="error" />}
-        {loadingUsers ? (
-          <p>Loading users...</p>
-        ) : (
-          <table className="w-full border-collapse border border-gray-300 text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border p-2">Name</th>
-                <th className="border p-2">Email</th>
-                <th className="border p-2">Role</th>
-                <th className="border p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="text-center p-3">No Users Found</td>
-                </tr>
-              )}
-              {users.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="border p-2">{user.name}</td>
-                  <td className="border p-2">{user.email}</td>
-                  <td className="border p-2">{user.role}</td>
-                  <td className="border p-2">
-                    <button
-                      onClick={() => { setUserToDelete(user._id); setConfirmVisible(true); }}
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
-
-      {/* ================= ORDERS TABLE ================= */}
-      <section>
-        <h1 className="text-2xl font-bold mb-4">Admin – All Orders</h1>
-        {orderError && <Alert message={orderError} type="error" />}
-        {loadingOrders ? (
-          <p>Loading orders...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-xs">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2">Order ID</th>
-                  <th className="border p-2">User</th>
-                  <th className="border p-2">Products</th>
-                  <th className="border p-2">Address</th>
-                  <th className="border p-2">Payment</th>
-                  <th className="border p-2">Order Status</th>
-                  <th className="border p-2">Amount</th>
-                  <th className="border p-2">Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.length === 0 && (
-                  <tr>
-                    <td colSpan="8" className="text-center p-3">No Orders Found</td>
-                  </tr>
+          {/* ================= USERS TABLE ================= */}
+          {activeTab === "users" && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+                <h2 className="text-xl font-semibold text-gray-800">All Users</h2>
+                <p className="text-sm text-gray-500 mt-1">Manage user accounts and permissions</p>
+              </div>
+              <div className="p-0">
+                {userError && <div className="p-6"><Alert message={userError} type="error" /></div>}
+                {loadingUsers ? (
+                  <div className="text-center py-16">
+                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-gray-600 font-medium">Loading users...</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr className="border-b-2 border-gray-200">
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Name</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Email</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Role</th>
+                          <th className="text-center py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {users.length === 0 && (
+                          <tr>
+                            <td colSpan="4" className="text-center py-12 text-gray-500">
+                              <div className="text-4xl mb-2">👥</div>
+                              <p className="font-medium">No Users Found</p>
+                            </td>
+                          </tr>
+                        )}
+                        {users.map((user, index) => (
+                          <tr key={user._id} className={`hover:bg-blue-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                            <td className="py-4 px-6 font-medium text-gray-800">{user.name}</td>
+                            <td className="py-4 px-6 text-gray-600 text-sm">{user.email}</td>
+                            <td className="py-4 px-6">
+                              <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700 uppercase">
+                                {user.role}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-center">
+                              <button
+                                onClick={() => {
+                                  setUserToDelete(user._id);
+                                  setConfirmVisible(true);
+                                }}
+                                className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors shadow-sm font-medium"
+                              >
+                                Delete
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
-                {orders.map((order) => (
-                  <tr key={order._id} className="hover:bg-gray-50">
-                    <td className="border p-2">{order._id}</td>
-                    <td className="border p-2"><b>{order.userName}</b><br />{order.userEmail}</td>
-                    <td className="border p-2">
-                      {order.products.map((p) => (
-                        <div key={p.productId} className="mb-2">
-                          <b>{p.name}</b> × {p.quantity} <br /> ₹{p.price}
-                        </div>
-                      ))}
-                    </td>
-                    <td className="border p-2">
-                      {order.address.fullName}<br />
-                      {order.address.house}, {order.address.road}<br />
-                      {order.address.city} – {order.address.pincode}<br />
-                      {order.address.state}<br />
-                      📞 {order.address.phone}
-                    </td>
-                    <td className="border p-2">
-                      Method: <b>{order.paymentMethod}</b><br />
-                      Status:{" "}
-                      <span className={
-                        order.paymentStatus === "PAID" ? "text-green-600" :
-                        order.paymentStatus === "FAILED" ? "text-red-600" :
-                        "text-yellow-600"
-                      }>
-                        {order.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="border p-2">{order.orderStatus}</td>
-                    <td className="border p-2 font-bold">₹{order.totalAmount}</td>
-                    <td className="border p-2">{new Date(order.createdAt).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+              </div>
+            </div>
+          )}
 
-      {/* ================= CONTACT MESSAGES ================= */}
-      <section>
-        <h1 className="text-2xl font-bold mb-4">Admin – Contact Messages</h1>
-        {messageError && <Alert message={messageError} type="error" />}
-        {loadingMessages ? (
-          <p>Loading messages...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-sm">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2">Name</th>
-                  <th className="border p-2">Email</th>
-                  <th className="border p-2">Subject</th>
-                  <th className="border p-2">Message</th>
-                  <th className="border p-2">Created At</th>
-                </tr>
-              </thead>
-              <tbody>
-                {messages.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="text-center p-3">No Messages Found</td>
-                  </tr>
+          {/* ================= ORDERS TABLE ================= */}
+          {activeTab === "orders" && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-white">
+                <h2 className="text-xl font-semibold text-gray-800">All Orders</h2>
+                <p className="text-sm text-gray-500 mt-1">Track and manage customer orders</p>
+              </div>
+              <div className="p-0">
+                {orderError && <div className="p-6"><Alert message={orderError} type="error" /></div>}
+                {loadingOrders ? (
+                  <div className="text-center py-16">
+                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-gray-600 font-medium">Loading orders...</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr className="border-b-2 border-gray-200">
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[120px]">Order ID</th>
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[160px]">Customer</th>
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[200px]">Products</th>
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[220px]">Shipping Address</th>
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[140px]">Payment</th>
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[120px]">Order Status</th>
+                          <th className="text-right py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[100px]">Amount</th>
+                          <th className="text-left py-4 px-4 font-semibold text-gray-700 text-xs uppercase tracking-wide min-w-[140px]">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {orders.length === 0 && (
+                          <tr>
+                            <td colSpan="8" className="text-center py-12 text-gray-500">
+                              <div className="text-4xl mb-2">📦</div>
+                              <p className="font-medium">No Orders Found</p>
+                            </td>
+                          </tr>
+                        )}
+                        {orders.map((order, index) => (
+                          <tr key={order._id} className={`hover:bg-purple-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                            <td className="py-4 px-4 font-mono text-xs text-blue-600 font-medium">
+                              {order._id.substring(0, 8)}...
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="font-semibold text-gray-800">{order.userName}</div>
+                              <div className="text-xs text-gray-500 mt-0.5">{order.userEmail}</div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="space-y-2">
+                                {order.products.map((p) => (
+                                  <div key={p.productId} className="bg-gray-100 rounded px-2 py-1.5">
+                                    <div className="font-medium text-gray-800 text-xs">{p.name}</div>
+                                    <div className="text-xs text-gray-600 mt-0.5">
+                                      <span className="font-semibold">Qty:</span> {p.quantity} × ₹{p.price}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-xs">
+                              <div className="space-y-0.5">
+                                <div className="font-semibold text-gray-800">{order.address.fullName}</div>
+                                <div className="text-gray-600">{order.address.house}, {order.address.road}</div>
+                                <div className="text-gray-600">{order.address.city}, {order.address.state} - {order.address.pincode}</div>
+                                <div className="text-gray-600 font-medium mt-1">📞 {order.address.phone}</div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="space-y-1.5">
+                                <div className="text-xs text-gray-600">
+                                  <span className="font-semibold">Method:</span> {order.paymentMethod}
+                                </div>
+                                <span className={`inline-block px-2.5 py-1 text-xs font-semibold rounded-full ${
+                                  order.paymentStatus === "PAID" ? "bg-green-100 text-green-700" :
+                                  order.paymentStatus === "FAILED" ? "bg-red-100 text-red-700" :
+                                  "bg-yellow-100 text-yellow-700"
+                                }`}>
+                                  {order.paymentStatus}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span className="inline-block px-3 py-1.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-700 uppercase">
+                                {order.orderStatus}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-right font-bold text-gray-800 text-base">
+                              ₹{order.totalAmount.toLocaleString()}
+                            </td>
+                            <td className="py-4 px-4 text-xs text-gray-600">
+                              {new Date(order.createdAt).toLocaleDateString('en-IN', { 
+                                day: '2-digit', 
+                                month: 'short', 
+                                year: 'numeric' 
+                              })}
+                              <div className="text-gray-500 mt-0.5">
+                                {new Date(order.createdAt).toLocaleTimeString('en-IN', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
-                {messages.map((msg) => (
-                  <tr key={msg._id} className="hover:bg-gray-50">
-                    <td className="border p-2">{msg.name}</td>
-                    <td className="border p-2">{msg.email}</td>
-                    <td className="border p-2">{msg.subject || "-"}</td>
-                    <td className="border p-2">{msg.message}</td>
-                    <td className="border p-2">{new Date(msg.createdAt).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+              </div>
+            </div>
+          )}
+
+          {/* ================= CONTACT MESSAGES ================= */}
+          {activeTab === "messages" && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-white">
+                <h2 className="text-xl font-semibold text-gray-800">Contact Messages</h2>
+                <p className="text-sm text-gray-500 mt-1">View customer inquiries and feedback</p>
+              </div>
+              <div className="p-0">
+                {messageError && <div className="p-6"><Alert message={messageError} type="error" /></div>}
+                {loadingMessages ? (
+                  <div className="text-center py-16">
+                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                    <p className="mt-4 text-gray-600 font-medium">Loading messages...</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr className="border-b-2 border-gray-200">
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide min-w-[150px]">Name</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide min-w-[200px]">Email</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide min-w-[180px]">Subject</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide min-w-[300px]">Message</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide min-w-[160px]">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {messages.length === 0 && (
+                          <tr>
+                            <td colSpan="5" className="text-center py-12 text-gray-500">
+                              <div className="text-4xl mb-2">✉️</div>
+                              <p className="font-medium">No Messages Found</p>
+                            </td>
+                          </tr>
+                        )}
+                        {messages.map((msg, index) => (
+                          <tr key={msg._id} className={`hover:bg-green-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                            <td className="py-4 px-6">
+                              <div className="font-semibold text-gray-800">{msg.name}</div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="text-sm text-gray-600">{msg.email}</div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="font-medium text-gray-700">
+                                {msg.subject || <span className="text-gray-400 italic">No Subject</span>}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="text-sm text-gray-700 leading-relaxed max-w-md">
+                                {msg.message}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-sm text-gray-600">
+                              {new Date(msg.createdAt).toLocaleDateString('en-IN', { 
+                                day: '2-digit', 
+                                month: 'short', 
+                                year: 'numeric' 
+                              })}
+                              <div className="text-gray-500 mt-0.5">
+                                {new Date(msg.createdAt).toLocaleTimeString('en-IN', { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

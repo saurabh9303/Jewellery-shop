@@ -241,9 +241,9 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                     <p className="text-sm font-light mb-2">{item.desc}</p>
-                    <button className="bg-white text-gray-900 px-6 py-2 rounded-full text-sm font-semibold hover:bg-yellow-500 hover:text-white transition-colors">
+                    <a href="/shop" className="bg-white text-gray-900 px-6 py-2 rounded-full text-sm font-semibold hover:bg-yellow-500 hover:text-white transition-colors">
                       Explore
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>

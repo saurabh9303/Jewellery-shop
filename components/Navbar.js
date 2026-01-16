@@ -25,7 +25,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="relative z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-200 shadow-sm">
+      <nav className="fixed z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 lg:h-20">
             {/* Logo */}
@@ -33,7 +33,7 @@ const Navbar = () => {
               href="/"
               className="flex-shrink-0 text-xl sm:text-2xl font-bold tracking-wide text-yellow-700 hover:text-yellow-600 transition-colors"
             >
-              ✨Abhi<span className="text-yellow-500">Jewellers</span>
+              ✨Imperial<span className="text-yellow-500">Jewels</span>
             </a>
 
             {/* Desktop Menu */}
@@ -89,9 +89,6 @@ const Navbar = () => {
                   className="text-gray-700 hover:text-yellow-600 transition-colors"
                   size={22}
                 />
-                <span className="absolute top-0 right-0 w-5 h-5 bg-yellow-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                  3
-                </span>
               </a>
             </div>
 
@@ -102,9 +99,6 @@ const Navbar = () => {
               </button>
               <a href="/cart" className="p-2 relative">
                 <ShoppingBag className="text-gray-700" size={20} />
-                <span className="absolute top-0 right-0 w-4 h-4 bg-yellow-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
-                  3
-                </span>
               </a>
               <button
                 className="p-2 text-gray-800 hover:bg-gray-100 rounded-md transition-colors"

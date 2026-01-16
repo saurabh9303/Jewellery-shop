@@ -23,7 +23,7 @@ export default function AboutPage() {
           className="relative text-center text-white z-10"
         >
           <h1 className="text-5xl md:text-6xl font-bold mb-4 tracking-wide">
-            About <span className="text-yellow-400">AbhiJewellers</span>
+            About <span className="text-yellow-400">Imperial Jewels</span>
           </h1>
           <p className="text-lg text-gray-200 max-w-2xl mx-auto">
             Celebrating the art of fine jewellery — where tradition meets modern
@@ -43,7 +43,7 @@ export default function AboutPage() {
             Our <span className="text-yellow-600">Story</span>
           </h2>
           <p className="text-gray-600 leading-relaxed mb-4">
-            Founded in 1998, <strong>AurumJewels</strong> began with a single
+            Founded in 1998, <strong>Imperial Jewels</strong> began with a single
             vision — to craft timeless pieces that embody elegance, purity, and
             the eternal beauty of gold and gemstones.
           </p>

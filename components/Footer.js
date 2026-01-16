@@ -16,7 +16,7 @@ export default function Footer() {
             whileHover={{ scale: 1.05 }}
             className="text-2xl font-bold text-yellow-500 tracking-widest mb-4"
           >
-            Abhi<span className="text-white">Jewellers</span>
+            Imperial<span className="text-white">Jewels</span>
           </motion.h2>
           <p className="text-sm text-gray-400 leading-relaxed mb-4">
             Discover timeless craftsmanship and modern luxury. Each piece is
@@ -77,15 +77,15 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-center space-x-3">
               <MapPin size={18} className="text-yellow-500" />
-              <span>Khermai Road Satna</span>
+              <span>Satna, Madhya pradesh, India</span>
             </li>
             <li className="flex items-center space-x-3">
               <Phone size={18} className="text-yellow-500" />
-              <span>+91 9109128882</span>
+              <span>+91 0000000000</span>
             </li>
             <li className="flex items-center space-x-3">
               <Mail size={18} className="text-yellow-500" />
-              <span>anand797447@gmail.com</span>
+              <span>imperialjewels@gmail.com</span>
             </li>
           </ul>
         </div>
@@ -96,7 +96,7 @@ export default function Footer() {
 
       {/* Copyright */}
       <div className="text-center text-xs text-gray-500">
-        © {new Date().getFullYear()} <span className="text-yellow-500 font-semibold">AbhiJewellers</span>. All Rights Reserved.
+        © {new Date().getFullYear()} <span className="text-yellow-500 font-semibold">Imperial Jewels</span>. All Rights Reserved.
       </div>
 
       {/* Bottom Glow Effect */}

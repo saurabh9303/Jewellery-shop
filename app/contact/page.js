@@ -31,7 +31,7 @@ export default function ContactPage() {
         setStatus("✅ Message sent successfully!");
         setFormData({ name: "", email: "", subject: "", message: "" });
       } else {
-        setStatus("❌ Failed to send message.");
+        setStatus("❌All fields are required");
       }
     } catch (error) {
       setStatus("❌ Error sending message.");
@@ -81,15 +81,15 @@ export default function ContactPage() {
           <ul className="space-y-5 text-gray-700">
             <li className="flex items-center space-x-4">
               <MapPin className="text-yellow-500" />
-              <span>Khermai Road Satna</span>
+              <span>Satna, Madhya Pradesh, India</span>
             </li>
             <li className="flex items-center space-x-4">
               <Phone className="text-yellow-500" />
-              <span>+91 9109128882</span>
+              <span>+91 0000000000</span>
             </li>
             <li className="flex items-center space-x-4">
               <Mail className="text-yellow-500" />
-              <span>anand797447@gmail.com</span>
+              <span>imperialjewels@gmail.com</span>
             </li>
           </ul>
           <h1 className="mt-5 text-yellow-600 font-bold">Other wey to contact</h1>

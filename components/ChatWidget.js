@@ -132,7 +132,7 @@ export default function ChatAssistant() {
             <div className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white px-4 py-3 flex justify-between items-center shadow-md">
               <div className="flex items-center gap-2">
                 <Sparkles size={18} />
-                <h2 className="font-semibold tracking-wide">Abhi Assistant</h2>
+                <h2 className="font-semibold tracking-wide">Your Assistant</h2>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
