@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import {Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -42,7 +42,11 @@ export default function Footer() {
             {["Home", "Shop", "Collections", "About", "Contact"].map((link) => (
               <li key={link}>
                 <Link
-                  href={`/${link.toLowerCase().replace(" ", "")}`}
+                  href={
+                    link === "Home"
+                      ? "/"
+                      : `/${link.toLowerCase().replace(" ", "")}`
+                  }
                   className="hover:text-yellow-500 transition duration-300"
                 >
                   {link}
@@ -77,7 +81,7 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             <li className="flex items-center space-x-3">
               <MapPin size={18} className="text-yellow-500" />
-              <span>Satna, Madhya pradesh, India</span>
+              <span>Noida, Uttar Pradesh, India</span>
             </li>
             <li className="flex items-center space-x-3">
               <Phone size={18} className="text-yellow-500" />
