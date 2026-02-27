@@ -1,206 +1,423 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 export default function ChatAssistant() {
+  const { data: session } = useSession();
+  const userName = session?.user?.name?.split(" ")[0] || "Guest";
+
   const [isOpen, setIsOpen] = useState(false);
-  const [chat, setChat] = useState([
-    {
-      sender: "bot",
-      text: "👋 Welcome to Abhi Jewellers! I’m your virtual assistant. How can I help you today?",
-    },
-  ]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [input, setInput] = useState("");
+  const [chat, setChat] = useState([]);
   const chatEndRef = useRef(null);
 
   const qaPairs = [
-    {
-      q: "What types of gold jewellery do you offer?",
-      a: "We offer 22K and 18K gold jewellery including necklaces, bangles, rings, earrings, and bridal sets — all BIS Hallmarked for purity.",
-    },
-    {
-      q: "Do you sell certified diamond jewellery?",
-      a: "Yes 💎 All our diamond pieces are IGI/GIA certified to ensure authenticity and top-quality craftsmanship.",
-    },
-    {
-      q: "Can I customize my own design?",
-      a: "Absolutely! You can share your design or idea with our experts, and we’ll craft a beautiful, one-of-a-kind piece just for you.",
-    },
-    {
-      q: "Do you have men’s gold chains?",
-      a: "Yes, we have a wide selection of men’s chains, bracelets, and rings in both gold and platinum finishes.",
-    },
-    {
-      q: "Is all jewellery BIS Hallmarked?",
-      a: "Yes ✅ All our gold jewellery carries the BIS Hallmark, guaranteeing purity and trust.",
-    },
-    {
-      q: "Can I exchange my old gold jewellery?",
-      a: "Yes, you can exchange your old gold jewellery for new designs at the current market rate after purity testing.",
-    },
-    {
-      q: "Do you provide polishing and cleaning services?",
-      a: "We offer lifetime free cleaning and polishing services for all jewellery purchased from Abhi Jewellers.",
-    },
-    {
-      q: "What are your current festive offers?",
-      a: "During festive seasons, we offer attractive discounts on diamond and gold jewellery and making charges. Visit our store or follow us for updates!",
-    },
-    {
-      q: "Do you have a lifetime exchange policy?",
-      a: "Yes, we offer a lifetime exchange policy on all gold and diamond jewellery purchased from us.",
-    },
-    {
-      q: "What are the trending bridal jewellery sets?",
-      a: "Kundan, Polki, Temple, and antique gold sets are trending now — perfect for royal bridal looks 👑.",
-    },
-    {
-      q: "Do you offer silver anklets and toe rings?",
-      a: "Yes, we have a wide collection of pure silver anklets, toe rings, and other accessories available.",
-    },
-    {
-      q: "Can I book jewellery online for in-store pickup?",
-      a: "Yes, you can reserve your favourite designs online and pick them up at your nearest Abhi Jewellers store.",
-    },
-    {
-      q: "How do I measure my ring size?",
-      a: "You can use our online ring size chart or visit our store for an accurate measurement using professional tools.",
-    },
-    {
-      q: "Do you make personalized name pendants?",
-      a: "Yes, we craft personalized gold, silver, and diamond name pendants — perfect for gifting 🎁.",
-    },
-    {
-      q: "Can you engrave initials on jewellery?",
-      a: "Yes, we provide engraving services for rings, lockets, and bracelets for a small additional charge.",
-    },
-    {
-      q: "What payment methods do you accept?",
-      a: "We accept cash, all major cards, UPI, bank transfers, and digital wallets like Paytm, GPay, and PhonePe.",
-    },
-    {
-      q: "Is EMI or financing available?",
-      a: "Yes, EMI options are available on select jewellery purchases through partnered banks and credit cards.",
-    },
-    {
-      q: "Do you offer international delivery?",
-      a: "Currently, we deliver across India. For international shipping, contact our customer care for special arrangements 🌍.",
-    },
-    {
-      q: "How can I contact customer support?",
-      a: "You can call us at +91-9876543210 or email support@abhijewellers.com. We’re available Mon–Sat, 10AM–8PM.",
-    },
-    {
-      q: "Can I see your latest diamond collections?",
-      a: "Sure! Visit our ‘Collections’ section to explore our latest certified diamond rings, earrings, and necklaces 💎.",
-    },
+    { q: "Gold Jewellery", a: "We offer 22K and 18K BIS Hallmarked gold jewellery including necklaces, bangles, rings, earrings, and bridal collections." },
+    { q: "Diamond Jewellery", a: "All our diamond jewellery is IGI or GIA certified to ensure authenticity and superior craftsmanship." },
+    { q: "Customization", a: "Yes, our expert designers can create personalized jewellery based on your specific requirements." },
+    { q: "EMI Options", a: "Flexible EMI options are available through partnered banks and credit card providers." },
+    { q: "Shipping", a: "We offer insured express shipping across India with secure packaging for all orders." },
+    { q: "Returns", a: "We accept returns within 7 days of delivery, subject to product condition verification." },
+    { q: "Store Visit", a: "Our flagship store is open Monday–Saturday, 10 AM to 8 PM. Walk-ins and appointments both welcome." },
   ];
 
-  const handleQuestionClick = (question) => {
-    const selected = qaPairs.find((pair) => pair.q === question);
-    if (!selected) return;
+  useEffect(() => {
+    setChat([
+      {
+        id: Date.now(),
+        sender: "bot",
+        text: `Welcome, ${userName}. How may we assist you today?`,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      },
+    ]);
+  }, [userName]);
 
-    setChat((prev) => [...prev, { sender: "user", text: question }]);
+  const sendMessage = (message) => {
+    if (!message.trim()) return;
+
+    setChat((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        sender: "user",
+        text: message,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      },
+    ]);
+    setInput("");
+    setIsTyping(true);
+
+    const matched = qaPairs.find((pair) =>
+      message.toLowerCase().includes(pair.q.toLowerCase())
+    );
 
     setTimeout(() => {
       setChat((prev) => [
         ...prev,
-        { sender: "bot", text: selected.a },
+        {
+          id: Date.now() + 1,
+          sender: "bot",
+          text: matched
+            ? matched.a
+            : "Thank you for your message. Our team will get back to you shortly.",
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
       ]);
-    }, 600);
+      setIsTyping(false);
+    }, 800);
   };
 
-  // 👇 Auto-scroll to bottom on new message
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [chat]);
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chat, isTyping]);
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 font-sans">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 80, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 80, scale: 0.9 }}
-            transition={{ duration: 0.35 }}
-            className="w-80 sm:w-96 h-[460px] bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl flex flex-col border border-amber-200 overflow-hidden"
-          >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white px-4 py-3 flex justify-between items-center shadow-md">
-              <div className="flex items-center gap-2">
-                <Sparkles size={18} />
-                <h2 className="font-semibold tracking-wide">Your Assistant</h2>
-              </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="hover:bg-amber-300/30 rounded-full p-1 transition"
-              >
-                <X size={20} />
-              </button>
-            </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap');
 
-            {/* Chat Messages */}
-            <div className="flex-1 px-4 py-3 space-y-3 overflow-y-auto bg-gradient-to-br from-amber-50 via-white to-yellow-50">
-              {chat.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${
-                    msg.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`px-3 py-2 rounded-2xl max-w-[75%] leading-snug text-sm ${
-                      msg.sender === "user"
-                        ? "bg-gradient-to-r from-amber-400 to-yellow-400 text-white"
-                        : "bg-white border border-amber-200 text-gray-800 shadow-sm"
-                    }`}
-                  >
-                    {msg.text}
+        .ij * { box-sizing: border-box; }
+        .ij { font-family: 'DM Sans', sans-serif; }
+
+        .ij-panel {
+          width: 380px;
+          height: 520px;
+          background: #111;
+          border-radius: 12px;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(196,158,84,0.15);
+        }
+
+        .ij-header {
+          background: #111;
+          padding: 16px 18px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px solid rgba(196,158,84,0.15);
+        }
+
+        .ij-header-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .ij-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #c49e54, #8a6b2e);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 15px;
+          font-weight: 600;
+          color: #111;
+          flex-shrink: 0;
+        }
+
+        .ij-header-title {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 15px;
+          font-weight: 600;
+          color: #e8d5a3;
+          letter-spacing: 0.04em;
+          margin: 0 0 2px;
+          line-height: 1;
+        }
+
+        .ij-header-sub {
+          font-size: 11px;
+          color: #6a5c3e;
+          margin: 0;
+          font-weight: 300;
+          letter-spacing: 0.04em;
+        }
+
+        .ij-close {
+          background: none;
+          border: none;
+          color: #5a4f38;
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 6px;
+          transition: color 0.15s;
+        }
+        .ij-close:hover { color: #c49e54; }
+
+        .ij-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          background: #0c0c0c;
+          scrollbar-width: thin;
+          scrollbar-color: #2a2318 transparent;
+        }
+        .ij-body::-webkit-scrollbar { width: 3px; }
+        .ij-body::-webkit-scrollbar-thumb { background: #2a2318; border-radius: 2px; }
+
+        .ij-row { display: flex; }
+        .ij-row.user { justify-content: flex-end; }
+        .ij-row.bot  { justify-content: flex-start; }
+
+        .ij-bubble {
+          max-width: 80%;
+          padding: 10px 14px;
+          font-size: 13px;
+          line-height: 1.6;
+          font-weight: 300;
+        }
+
+        .ij-bubble.user {
+          background: linear-gradient(135deg, #c49e54, #9e7c38);
+          color: #111;
+          font-weight: 400;
+          border-radius: 12px 12px 2px 12px;
+        }
+
+        .ij-bubble.bot {
+          background: #1a1a1a;
+          color: #c8bfa8;
+          border: 1px solid rgba(196,158,84,0.1);
+          border-radius: 12px 12px 12px 2px;
+        }
+
+        .ij-time {
+          font-size: 9.5px;
+          margin-top: 5px;
+          opacity: 0.45;
+          text-align: right;
+        }
+        .ij-bubble.bot .ij-time { text-align: left; }
+
+        .ij-typing-row {
+          display: flex;
+          align-items: center;
+          padding: 4px 6px;
+        }
+        .ij-dots { display: flex; gap: 4px; }
+        .ij-dots span {
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          background: #c49e54;
+          animation: dot-bounce 1.2s ease-in-out infinite;
+        }
+        .ij-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .ij-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot-bounce {
+          0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+          40% { opacity: 1; transform: translateY(-3px); }
+        }
+
+        /* ── Quick Actions: always-visible gold horizontal scrollbar ── */
+        .ij-quick-wrap {
+          border-top: 1px solid rgba(196,158,84,0.1);
+          background: #111;
+          padding: 10px 14px 8px;
+          overflow-x: scroll;
+          overflow-y: hidden;
+          scrollbar-width: thin;
+          scrollbar-color: #c49e54 #1e1505;
+        }
+        .ij-quick-wrap::-webkit-scrollbar {
+          height: 4px;
+        }
+        .ij-quick-wrap::-webkit-scrollbar-track {
+          background: #1e1505;
+          border-radius: 99px;
+          margin: 0 4px;
+        }
+        .ij-quick-wrap::-webkit-scrollbar-thumb {
+          background: #c49e54;
+          border-radius: 99px;
+        }
+        .ij-quick-wrap::-webkit-scrollbar-thumb:hover {
+          background: #e8c97a;
+        }
+
+        .ij-quick-inner {
+          display: flex;
+          gap: 8px;
+          width: max-content;
+          padding-bottom: 6px;
+        }
+
+        .ij-chip {
+          flex-shrink: 0;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 11.5px;
+          font-weight: 400;
+          padding: 5px 13px;
+          border: 1px solid rgba(196,158,84,0.22);
+          background: transparent;
+          color: #8a7a5a;
+          cursor: pointer;
+          border-radius: 99px;
+          transition: all 0.18s ease;
+          white-space: nowrap;
+        }
+        .ij-chip:hover {
+          border-color: #c49e54;
+          color: #c49e54;
+          background: rgba(196,158,84,0.06);
+        }
+
+        .ij-input-row {
+          border-top: 1px solid rgba(196,158,84,0.1);
+          padding: 12px 14px;
+          background: #111;
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .ij-input {
+          flex: 1;
+          background: #1a1a1a;
+          border: 1px solid rgba(196,158,84,0.15);
+          border-radius: 8px;
+          padding: 9px 13px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 300;
+          color: #c8bfa8;
+          outline: none;
+          transition: border-color 0.18s;
+        }
+        .ij-input::placeholder { color: #3a3020; font-style: italic; }
+        .ij-input:focus { border-color: rgba(196,158,84,0.35); }
+
+        .ij-send {
+          width: 36px; height: 36px;
+          background: linear-gradient(135deg, #c49e54, #9e7c38);
+          border: none;
+          border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+          color: #111;
+          flex-shrink: 0;
+          transition: opacity 0.18s;
+        }
+        .ij-send:hover { opacity: 0.85; }
+
+        .ij-fab {
+          width: 54px; height: 54px;
+          background: linear-gradient(135deg, #c49e54, #9e7c38);
+          border: none;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer;
+          color: #111;
+          box-shadow: 0 8px 28px rgba(196,158,84,0.35), 0 2px 8px rgba(0,0,0,0.4);
+        }
+      `}</style>
+
+      <div className="ij" style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 9999 }}>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              className="ij-panel"
+              initial={{ opacity: 0, y: 14, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.97 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Header */}
+              <div className="ij-header">
+                <div className="ij-header-left">
+                  <div className="ij-avatar">IJ</div>
+                  <div>
+                    <p className="ij-header-title">Imperial Jewels</p>
+                    <p className="ij-header-sub">Exclusive Assistance for {userName}</p>
                   </div>
                 </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Predefined Questions */}
-            <div className="border-t border-amber-200 bg-white/80 backdrop-blur-lg p-3">
-              <p className="text-xs text-gray-500 mb-2 font-medium">
-                Select a question:
-              </p>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                {qaPairs.map((pair, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleQuestionClick(pair.q)}
-                    className="whitespace-nowrap text-xs px-3 py-1.5 rounded-full border border-amber-300 text-gray-700 hover:bg-amber-100 transition"
-                  >
-                    {pair.q}
-                  </button>
-                ))}
+                <button className="ij-close" onClick={() => setIsOpen(false)}>
+                  <X size={16} strokeWidth={2} />
+                </button>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Floating Button */}
-      {!isOpen && (
-        <motion.button
-          onClick={() => setIsOpen(true)}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          className="relative bg-gradient-to-r from-amber-500 to-yellow-400 text-white p-4 rounded-full shadow-2xl hover:shadow-amber-400/50 transition-all duration-300"
-        >
-          <MessageCircle size={26} />
-          <span className="absolute -top-2 -right-2 bg-white text-amber-600 text-xs px-1.5 py-0.5 rounded-full shadow">
-            1
-          </span>
-        </motion.button>
-      )}
-    </div>
+              {/* Messages */}
+              <div className="ij-body">
+                {chat.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    className={`ij-row ${msg.sender}`}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className={`ij-bubble ${msg.sender}`}>
+                      {msg.text}
+                      <div className="ij-time">{msg.time}</div>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {isTyping && (
+                  <div className="ij-typing-row">
+                    <div className="ij-dots">
+                      <span /><span /><span />
+                    </div>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Quick Actions with horizontal scrollbar */}
+              <div className="ij-quick-wrap">
+                <div className="ij-quick-inner">
+                  {qaPairs.map((pair, i) => (
+                    <button key={i} className="ij-chip" onClick={() => sendMessage(pair.q)}>
+                      {pair.q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Input */}
+              <div className="ij-input-row">
+                <input
+                  type="text"
+                  className="ij-input"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMessage(input)}
+                  placeholder="Type your message…"
+                />
+                <button className="ij-send" onClick={() => sendMessage(input)}>
+                  <Send size={15} strokeWidth={2} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* FAB */}
+        {!isOpen && (
+          <motion.button
+            className="ij-fab"
+            onClick={() => setIsOpen(true)}
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+          >
+            <MessageCircle size={22} strokeWidth={1.8} />
+          </motion.button>
+        )}
+      </div>
+    </>
   );
 }

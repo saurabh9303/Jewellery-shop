@@ -23,13 +23,13 @@ export default function Footer() {
             designed to make every moment shine brighter.
           </p>
           <div className="flex space-x-4 mt-4">
-            <Link href="https://www.instagram.com/saurabh0nly/" target="_blank" className="hover:text-yellow-500 transition">
+            <Link href="https://www.instagram.com/" target="_blank" className="hover:text-yellow-500 transition">
               <Instagram size={20} />
             </Link>
-            <Link href="https://x.com/IMANAND74" target="_blank" className="hover:text-yellow-500 transition">
+            <Link href="https://x.com/" target="_blank" className="hover:text-yellow-500 transition">
               <Twitter size={20} />
             </Link>
-            <Link href="https://www.youtube.com/@engineeringcs" target="_blank" className="hover:text-yellow-500 transition">
+            <Link href="https://www.youtube.com/" target="_blank" className="hover:text-yellow-500 transition">
               <Youtube size={20} />
             </Link>
           </div>

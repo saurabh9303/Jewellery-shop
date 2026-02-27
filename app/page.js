@@ -39,14 +39,14 @@ export default function Home() {
     const timer = setInterval(() => {
       setDirection(1);
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(timer);
   }, [heroSlides.length]);
 
   const slideVariants = {
     enter: (direction) => ({
-      x: direction > 0 ? -1000 : 1000,
+      x: direction > 0 ? 1000 : -1000,
       opacity: 0,
     }),
     center: {
@@ -56,7 +56,7 @@ export default function Home() {
     },
     exit: (direction) => ({
       zIndex: 0,
-      x: direction < 0 ? -1000 : 1000,
+      x: direction > 0 ? -1000 : 1000,
       opacity: 0,
     }),
   };
@@ -80,7 +80,7 @@ export default function Home() {
             exit="exit"
             transition={{
               x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.5 },
+              opacity: { duration: 0.3 }
             }}
             className="absolute inset-0"
           >
@@ -144,59 +144,13 @@ export default function Home() {
               key={index}
               onClick={() => handleSlideChange(index)}
               className={`transition-all duration-300 rounded-full ${currentSlide === index
-                  ? "w-12 h-3 bg-yellow-500"
-                  : "w-3 h-3 bg-white/50 hover:bg-white/80"
+                ? "w-12 h-3 bg-yellow-500"
+                : "w-3 h-3 bg-white/50 hover:bg-white/80"
                 }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
-
-        {/* Navigation Arrows */}
-        <button
-          onClick={() =>
-            handleSlideChange(
-              currentSlide === 0 ? heroSlides.length - 1 : currentSlide - 1
-            )
-          }
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white p-3 md:p-4 rounded-full transition-all hover:scale-110"
-          aria-label="Previous slide"
-        >
-          <svg
-            className="w-6 h-6 md:w-8 md:h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        <button
-          onClick={() =>
-            handleSlideChange((currentSlide + 1) % heroSlides.length)
-          }
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white p-3 md:p-4 rounded-full transition-all hover:scale-110"
-          aria-label="Next slide"
-        >
-          <svg
-            className="w-6 h-6 md:w-8 md:h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
       </section>
 
       {/* Featured Collection */}

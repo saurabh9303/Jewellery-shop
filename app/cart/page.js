@@ -145,7 +145,7 @@ export default function CartPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-amber-50 p-6 md:p-10">
-      <h1 className="text-4xl font-bold text-amber-700 mb-10 flex items-center gap-3">
+      <h1 className="text-4xl font-bold text-amber-700 mb-10 flex items-center mt-15 gap-3">
         <ShoppingBag /> Your Cart
       </h1>
 

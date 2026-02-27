@@ -1,6 +1,7 @@
 'use client';
 import { useState } from "react";
 import { Menu, X, ShoppingBag, User, Search, ChevronDown } from "lucide-react";
+import Image from "next/image";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -25,15 +26,22 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="fixed z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-200 shadow-sm">
+      <nav className="fixed z-50 w-full backdrop-blur-md bg-white/15 border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 lg:h-20">
             {/* Logo */}
             <a
               href="/"
-              className="flex-shrink-0 text-xl sm:text-2xl font-bold tracking-wide text-yellow-700 hover:text-yellow-600 transition-colors"
+              className="flex items-center flex-shrink-0"
             >
-              ✨Imperial<span className="text-yellow-500">Jewels</span>
+              <Image
+                src="/images/imperial-logo.png"
+                alt="Imperial Jewels Logo"
+                width={180}
+                height={60}
+                priority
+                className="object-contain h-20 hover:opacity-90 transition duration-300"
+              />
             </a>
 
             {/* Desktop Menu */}
@@ -113,9 +121,8 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div
-          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-            menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
-          }`}
+          className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="bg-white/95 backdrop-blur-md border-t border-gray-200 px-4 py-4 space-y-1">
             {/* Search */}
@@ -158,19 +165,17 @@ const Navbar = () => {
                 <span>Categories</span>
                 <ChevronDown
                   size={18}
-                  className={`transition-transform duration-200 ${
-                    mobileDropdown ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform duration-200 ${mobileDropdown ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  mobileDropdown
+                className={`overflow-hidden transition-all duration-300 ${mobileDropdown
                     ? "max-h-64 opacity-100"
                     : "max-h-0 opacity-0"
-                }`}
+                  }`}
               >
-                
+
               </div>
             </div>
 
