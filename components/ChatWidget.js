@@ -84,8 +84,8 @@ export default function ChatAssistant() {
         .ij { font-family: 'DM Sans', sans-serif; }
 
         .ij-panel {
-          width: 380px;
-          height: 520px;
+          width: 320px;
+          height: 480px;
           background: #111;
           border-radius: 12px;
           display: flex;
